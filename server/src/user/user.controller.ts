@@ -4,19 +4,16 @@ import { User } from '#@/user/entities/user.entity';
 import {
   Body,
   Controller,
-  Delete,
   HttpCode,
   HttpStatus,
-  Param,
-  Patch,
   Post,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBody, ApiResponse, OmitType } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
 
 @Controller('users')
@@ -36,6 +33,8 @@ export class UserController {
     res.setHeader('location', `users/${user.id}`);
   }
 
+  @ApiBody({ type: CreateUserDto })
+  @ApiResponse({ type: OmitType(User, ['password']) })
   @Post('/login')
   @HttpCode(HttpStatus.OK)
   @UseGuards(LocalStrategyGuard)
@@ -49,15 +48,5 @@ export class UserController {
     const { password, ...response } = user;
 
     return response;
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
   }
 }
