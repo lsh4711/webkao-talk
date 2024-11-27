@@ -1,0 +1,26 @@
+server {
+    listen [::]:443 ssl;
+    server_name ${SERVER_DOMAIN};
+
+    client_body_buffer_size 1m; # TODO 피크 메모리 확인
+    client_max_body_size 1m;
+
+    ssl_certificate /mount/${SERVER_DOMAIN}_ecc/fullchain.cer;
+    ssl_certificate_key /mount/${SERVER_DOMAIN}_ecc/${SERVER_DOMAIN}.key;
+
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1h;
+
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    ssl_trusted_certificate /mount/${SERVER_DOMAIN}_ecc/fullchain.cer;
+    resolver [2001:4860:4860::8888] [2001:4860:4860::8844] ipv4=off;
+
+    location = / {
+            proxy_pass http://${SERVER_HOST}:${SERVER_PORT}/api;
+    }
+
+    location / {
+        proxy_pass http://${SERVER_HOST}:${SERVER_PORT};
+    }
+}

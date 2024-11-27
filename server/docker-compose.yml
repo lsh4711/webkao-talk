@@ -1,0 +1,35 @@
+services:
+  server:
+    build:
+      dockerfile: deploy/Dockerfile-server
+    image: ${REGISTRY_ENDPOINT}/talk-server
+    container_name: talk-server
+    networks: [ ip6net ]
+    entrypoint: [ node, dist/src/main ]
+
+  nginx:
+    build:
+      dockerfile: deploy/Dockerfile-nginx
+    image: ${REGISTRY_ENDPOINT}/talk-nginx
+    container_name: talk-nginx
+    volumes: [ ./acme/:/mount/ ]
+    networks: [ ip6net ]
+    ports: [ "443:443" ]
+    environment:
+      SERVER_DOMAIN: ${SERVER_DOMAIN}
+      SERVER_HOST: ${SERVER_HOST}
+      SERVER_PORT: ${SERVER_PORT}
+      NGINX_ENVSUBST_FILTER: ^(SERVER_DOMAIN|SERVER_HOST|SERVER_PORT)$
+    healthcheck:
+      test: wget localhost --spider
+      start_period: 10s
+      start_interval: 1s
+      interval: 1m
+      timeout: 1s
+
+networks:
+  ip6net:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: fd00:cafe:face:feed::/64
